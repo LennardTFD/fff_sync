@@ -1,0 +1,64 @@
+<html>
+<head>
+    <script src="/io"></script>
+    <script src="/js/socket.io-stream.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+</head>
+<h1>What to do?</h1>
+<h4>1. Systemzeit in den Einstellungen auf "Automatisch"</h4>
+<h4>2. Bildschirm Timeout deaktivieren</h4>
+<h4>3. Video Starten</h4>
+<h4>4. Video Pausieren</h4>
+<h4>5. Video auf 0 zurücksetzen</h4>
+<h4>6. Auf Zuruf offen halten!</h4>
+<input id="youtubeSource" type="text"><button onclick="setSource()">
+<div id="ytplayer"></div>
+
+<script>
+    // Load the IFrame Player API code asynchronously.
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/player_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    // Replace the 'ytplayer' element with an <iframe> and
+    // YouTube player after the API code downloads.
+    var player;
+
+    function onYouTubePlayerAPIReady() {
+        player = new YT.Player('ytplayer', {
+            height: '400',
+            width: "400",
+            videoId: '-Y98uCHayPs'
+        });
+    }
+</script>
+
+<script>
+    var socket = io();
+    var audio = document.getElementById("audio");
+
+    socket.on("newTime", (timeToStart) => {
+
+        setTimeout(() => {
+            player.setPlaybackQuality("tiny");
+            player.playVideo();
+        }, timeToStart - (new Date()).getTime());
+    });
+
+    socket.on("newSource", (src) => {
+        player = new YT.Player('ytplayer', {
+            height: '400',
+            width: "400",
+            videoId: src
+        });
+    });
+
+        
+    function setSource() {
+        let src = $("#youtubeSource").val();
+        let li = src.lastIndexOf("/");
+        socket.emit("newSource", src.slice(li + 1, -1));
+    }
+</script>
+</html>
